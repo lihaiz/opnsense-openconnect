@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# PROVIDE: opnsense-openconnect
+# REQUIRE: SERVERS
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=openconnect
+
+stop_cmd=openconnect_stop
+start_cmd=openconnect_start
+status_cmd=openconnect_status
+rcvar=openconnect_enable
+
+load_rc_config opnsense-openconnect
+
+MANAGER=/usr/local/opnsense/scripts/OPNsense/Openconnect/run_instances.py
+
+[ -z "${openconnect_enable}" ] && openconnect_enable="NO"
+
+openconnect_status()
+{
+	${MANAGER} status
+}
+
+openconnect_stop()
+{
+	echo "stopping openconnect (all instances)"
+	${MANAGER} stop
+}
+
+openconnect_start()
+{
+	echo "starting openconnect (enabled instances)"
+	${MANAGER} start
+	return 0
+}
+
+run_rc_command ${1}

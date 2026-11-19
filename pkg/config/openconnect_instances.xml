@@ -1,0 +1,6 @@
+<!-- Reference only. The generic installer does NOT write this file; instances
+     are added/edited in the GUI (Services -> OpenConnect). Shown as an example
+     of the resulting XML shape. -->
+<instances>
+  <!-- add instances via GUI -->
+</instances>

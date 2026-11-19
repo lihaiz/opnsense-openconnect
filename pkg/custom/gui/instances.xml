@@ -1,0 +1,14 @@
+<form>
+    <field>
+        <id>instances.instance</id>
+        <label>OpenConnect Instances</label>
+        <type>table</type>
+        <enable>instance.enabled</enable>
+        <columns>
+            <instance.name>Name</instance.name>
+            <instance.server>VPN Server</instance.server>
+            <instance.protocol>Protocol</instance.protocol>
+            <instance.interface>Interface</instance.interface>
+        </columns>
+    </field>
+</form>

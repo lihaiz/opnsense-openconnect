@@ -1,0 +1,5 @@
+{% if helpers.exists('OPNsense.openconnect.instances.instance') %}
+openconnect_enable="YES"
+{% else %}
+openconnect_enable="NO"
+{% endif %}

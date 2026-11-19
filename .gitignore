@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.log
+*.pid
+*.bak*
+*.tar.gz
+*.swp
+.DS_Store

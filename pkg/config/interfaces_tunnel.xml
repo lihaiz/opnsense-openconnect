@@ -1,0 +1,3 @@
+<!-- Reference only. Tunnel interfaces are registered dynamically by the
+     plugin hook openconnect_interfaces(), so no static <interfaces> entry is
+     required or desired. -->

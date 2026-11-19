@@ -1,0 +1,3 @@
+<!-- Reference only. Source NAT is derived dynamically by run_instances.py from
+     the routes each VPN server pushes (OPNsense.Firewall.Filter.snatrules).
+     No hardcoded subnet or interface belongs here. -->
