@@ -30,6 +30,12 @@ TUN adapter. Select `Huawei SecoClient (UniSpoke)` as the protocol for such a
 gateway; mode and transport auto-detect, and can be forced per instance when a
 gateway is misjudged.
 
+Huawei SVN gateways almost always present a self-signed, SAN-less device
+certificate (CN like `LOCAL-xxxxxxxxxxxx`), so TLS verification fails with
+`x509: certificate is not valid for any names`. For such a gateway, open the
+instance and tick **Skip TLS certificate verification** (the `allowinsecure`
+field); for UniSpoke this maps to `-insecure` and is required, not optional.
+
 ## Installation
 
 ### One-command install (recommended)
@@ -37,14 +43,14 @@ gateway is misjudged.
 On the OPNsense target, as root:
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 or with `curl`:
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -58,7 +64,7 @@ else.
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# AE45A2807297AD849A148C1CB32742A43A299F6F38B8D206E6B1E224F1A567FF
+# 9068B979A78F72EAC85082CCF8E5F6E9582CCACC46882E39B76852956D9578DC
 ```
 
 ### Build from source (alternative)
@@ -104,6 +110,10 @@ pfctl -sn | grep 'nat on ocvpn'
     同时支持华为 UniVPN 的 **Legacy** 与 **V1** 两种协议，自带原生 TUN 模式。
     华为 SVN 网关（含老式 Legacy 与 V1）请选 `Huawei SecoClient (UniSpoke)`，
     mode/transport 自动探测，需要时可逐实例强制指定。
+    > 华为 SVN 网关几乎都下发自签名、无 SAN 的设备证书（CN 形如
+    `LOCAL-xxxxxxxxxxxx`），因此 TLS 校验会报 `x509: certificate is not valid for
+    any names`。这种网关必须勾选实例里的 **Skip TLS certificate verification**
+    （`allowinsecure` 字段）；对 UniSpoke 它对应 `-insecure`，是必选项，不是可选项。
 - 每个实例用**自己的接口名**，由 vpnc-instance.sh 把内核分配的 tunN 改名成该接口名，
   让 pf/NAT 能识别接口（UniSpoke 后端直接按该接口名创建 TUN，无需改名）。
 - 启动脚本**保留物理 WAN 默认路由**，所以 mihomo 翻墙、百度直连都不受影响（split tunnel）。
@@ -153,14 +163,14 @@ pfctl -sn | grep 'nat on ocvpn'
 fetch（FreeBSD 原生）：
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 或 curl：
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -168,7 +178,7 @@ sh /tmp/opnsense-openconnect-install.sh
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# AE45A2807297AD849A148C1CB32742A43A299F6F38B8D206E6B1E224F1A567FF
+# 9068B979A78F72EAC85082CCF8E5F6E9582CCACC46882E39B76852956D9578DC
 ```
 
 ### 从源码安装（备选）

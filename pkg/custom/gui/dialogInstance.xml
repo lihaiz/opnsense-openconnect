@@ -147,10 +147,10 @@
     </field>
     <field>
         <id>instance.allowinsecure</id>
-        <label>Allow Insecure Ciphers</label>
+        <label>Skip TLS certificate verification</label>
         <type>checkbox</type>
         <advanced>Y</advanced>
-        <help>This option allows the use of insecure ciphers.</help>
+        <help>For OpenConnect this allows insecure ciphers; for UniSpoke (Huawei SecoClient/SVN) it skips TLS certificate verification (required for the self-signed, SAN-less gateway certificates Huawei SVN presents).</help>
         <grid_view>
             <ignore>true</ignore>
         </grid_view>
