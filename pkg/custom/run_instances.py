@@ -20,6 +20,8 @@ CONFDIR = '/usr/local/etc/openconnect'
 RUNNER = '/usr/local/opnsense/scripts/OPNsense/Openconnect/run-instance.sh'
 VPNC = '/usr/local/opnsense/scripts/OPNsense/Openconnect/vpnc-instance.sh'
 BIN = '/usr/local/sbin/openconnect'
+UNISPOKE_BIN = '/usr/local/sbin/unispoke'
+UNISPOKE_RUNNER = '/usr/local/opnsense/scripts/OPNsense/Openconnect/run-unispoke.sh'
 TUN_BASE = 30000
 CONFIG_XML = '/conf/config.xml'
 def _lan_net():
@@ -285,6 +287,8 @@ def load_instances():
             'tokenmode': text(inst, 'tokenmode'),
             'tokensecret': text(inst, 'tokensecret'),
             'allowinsecure': text(inst, 'allowinsecure') == '1',
+            'mode': text(inst, 'mode'),
+            'transport': text(inst, 'transport'),
             'protocol': text(inst, 'protocol') or 'anyconnect',
             'iface': iface,
             'tun': tun,
@@ -323,13 +327,27 @@ def render_conf(inst):
     return '\n'.join(lines) + '\n'
 
 
+
+def render_unispoke_conf(inst):
+    # UniSpoke is a standalone binary: only user plus optional mode/transport/
+    # insecure flags are meaningful.  The password is passed via a .secret file
+    # and UNISPOKE_PASSWORD env var, never on the command line.
+    lines = ['user=%s' % inst['user']] if inst['user'] else []
+    if inst.get('mode'):
+        lines.append('mode=%s' % inst['mode'])
+    if inst.get('transport'):
+        lines.append('transport=%s' % inst['transport'])
+    if inst['allowinsecure']:
+        lines.append('insecure=1')
+    return '\n'.join(lines) + '\n'
+
 def write_instance_files(inst):
     os.makedirs(CONFDIR, exist_ok=True)
     conf = os.path.join(CONFDIR, '%s.conf' % inst['iface'])
     secret = os.path.join(CONFDIR, '%s.secret' % inst['iface'])
     server = os.path.join(CONFDIR, '%s.server' % inst['iface'])
     with open(conf, 'w') as f:
-        f.write(render_conf(inst))
+        f.write(render_unispoke_conf(inst) if is_unispoke(inst) else render_conf(inst))
     with open(secret, 'w') as f:
         f.write(inst['password'] + '\n')
     with open(server, 'w') as f:
@@ -357,6 +375,10 @@ def wan_default():
                 break
     return gw, iface
 
+
+
+def is_unispoke(inst):
+    return inst['protocol'] == 'secoclient'
 
 
 def reload_filter():
@@ -476,8 +498,14 @@ def stop_instance(inst):
         sh('kill -KILL %d' % pid)
     # fallback: match the full child command line (contains <iface>.conf)
     sh("pkill -f '%s .*%s.conf'" % (BIN, inst['iface']))
+    # UniSpoke child runs as `unispoke ... -vpn-name <iface> ...`
+    if is_unispoke(inst):
+        sh("pkill -f '%s .*-vpn-name %s'" % (UNISPOKE_BIN, inst['iface']))
+        sh("pkill -f '%s .*-vpn-name=%s'" % (UNISPOKE_BIN, inst['iface']))
+        sh("ifconfig %s destroy >/dev/null 2>&1" % inst['iface'])
     # kill any leftover daemon wrappers for this instance (stale from reloads)
     sh("pkill -f 'daemon.*run-instance.sh.*%s'" % inst['iface'])
+    sh("pkill -f 'daemon.*run-unispoke.sh.*%s'" % inst['iface'])
     sh("pkill -f '%s .*%s.conf'" % (BIN, inst['iface']))
     if os.path.exists(pf):
         os.remove(pf)
@@ -501,8 +529,9 @@ def start_instance(inst):
         f.write('%s\n%s\n' % (gw, gwi))
     if os.path.exists(logfile(inst)):
         os.remove(logfile(inst))
+    runner = UNISPOKE_RUNNER if is_unispoke(inst) else RUNNER
     cmd = "daemon -r -R 30 -p %s -o %s %s %s" % (
-        pidfile(inst), logfile(inst), RUNNER, inst['iface'])
+        pidfile(inst), logfile(inst), runner, inst['iface'])
     sh(cmd)
 
 
@@ -543,7 +572,7 @@ def main():
         for inst in instances:
             active_ifaces.add(inst['iface'])
             conf_path = os.path.join(CONFDIR, '%s.conf' % inst['iface'])
-            new_conf = render_conf(inst)
+            new_conf = render_unispoke_conf(inst) if is_unispoke(inst) else render_conf(inst)
             old_conf = None
             if os.path.exists(conf_path):
                 with open(conf_path) as f:

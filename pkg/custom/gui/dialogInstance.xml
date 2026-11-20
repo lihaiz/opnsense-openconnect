@@ -126,6 +126,26 @@
         </grid_view>
     </field>
     <field>
+        <id>instance.mode</id>
+        <label>UniSpoke Gateway Mode</label>
+        <type>dropdown</type>
+        <advanced>Y</advanced>
+        <help>Huawei SecoClient gateway mode. Auto-detect works for both Legacy and V1; override only if detection misjudges the server.</help>
+        <grid_view>
+            <ignore>true</ignore>
+        </grid_view>
+    </field>
+    <field>
+        <id>instance.transport</id>
+        <label>UniSpoke Data Transport</label>
+        <type>dropdown</type>
+        <advanced>Y</advanced>
+        <help>Huawei SecoClient data transport. Auto picks UDP and falls back to TCP/TLS; override to force one.</help>
+        <grid_view>
+            <ignore>true</ignore>
+        </grid_view>
+    </field>
+    <field>
         <id>instance.allowinsecure</id>
         <label>Allow Insecure Ciphers</label>
         <type>checkbox</type>

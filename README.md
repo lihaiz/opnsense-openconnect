@@ -8,6 +8,11 @@ and dynamic Source NAT based on the routes each VPN server actually pushes.
 ## Features
 
 - GUI-managed multiple OpenConnect instances.
+- Two protocol backends:
+  - **OpenConnect** — Cisco AnyConnect, Juniper, Pulse, GlobalProtect, F5,
+    Fortinet, Array, and Huawei UniVPN (V1).
+  - **UniSpoke** (`secoclient`) — Huawei SecoClient / SVN SSL VPN, supporting
+    both the **Legacy** and **V1** UniVPN protocols with native TUN mode.
 - Independent tunnel interface names and runtime files per instance.
 - Preserves the physical WAN default route (split tunnel friendly).
 - Generates Source NAT from the routes actually pushed by each server.
@@ -15,6 +20,16 @@ and dynamic Source NAT based on the routes each VPN server actually pushes.
   subnet in the source tree.
 - Dashboard Services status understands multi-instance operation: the service
   is running when at least one configured instance is online.
+
+### UniSpoke backend (Huawei SecoClient / SVN)
+
+The stock `openconnect --protocol=univpn` only speaks the Huawei **V1** dialect,
+so legacy Huawei SVN gateways fail to connect. This package bundles
+[UniSpoke](https://github.com/NixaVulpi/UniSpoke), a standalone Go client that
+implements both the **Legacy** and **V1** UniVPN protocols and creates its own
+TUN adapter. Select `Huawei SecoClient (UniSpoke)` as the protocol for such a
+gateway; mode and transport auto-detect, and can be forced per instance when a
+gateway is misjudged.
 
 ## Installation
 
@@ -35,9 +50,10 @@ sh /tmp/opnsense-openconnect-install.sh
 ```
 
 The installer is self-contained: it installs the package dependencies
-(`os-openconnect`, `openconnect`, `vpnc-scripts`), copies the custom scripts,
-prepares `/conf/config.xml`, reloads configd, and starts the manager. You do
-not need to download or unpack anything else.
+(`os-openconnect`, `openconnect`, `vpnc-scripts`), copies the custom scripts and
+the bundled `unispoke` FreeBSD binary, prepares `/conf/config.xml`, reloads
+configd, and starts the manager. You do not need to download or unpack anything
+else.
 
 ### Verify the download (optional)
 
@@ -82,8 +98,16 @@ pfctl -sn | grep 'nat on ocvpn'
 ## 能力
 - GUI: Services -> OpenConnect 里可增删多个实例，每个实例独立
   server / user / password / authgroup / 接口名(interface) / 协议。
+- 两种协议后端：
+  - **OpenConnect**：Cisco AnyConnect、Juniper、Pulse、GlobalProtect、F5、
+    Fortinet、Array，以及 Huawei UniVPN（仅 V1）。
+  - **UniSpoke**（协议选项 `secoclient`）：Huawei SecoClient / SVN SSL VPN，
+    同时支持华为 UniVPN 的 **Legacy** 与 **V1** 两种协议，自带原生 TUN 模式。
+    系统自带的 `openconnect --protocol=univpn` 只支持 V1，所以老式华为 SVN 网关
+    连不上；选 `Huawei SecoClient (UniSpoke)` 即可，mode/transport 自动探测，
+    需要时可逐实例强制指定。
 - 每个实例用**自己的接口名**，由 vpnc-instance.sh 把内核分配的 tunN 改名成该接口名，
-  让 pf/NAT 能识别接口。
+  让 pf/NAT 能识别接口（UniSpoke 后端直接按该接口名创建 TUN，无需改名）。
 - 启动脚本**保留物理 WAN 默认路由**，所以 mihomo 翻墙、百度直连都不受影响（split tunnel）。
 - **NAT 是动态的**：run_instances.py 每次启停后，从 netstat -rn -f inet 读取每个隧道接口
   当前承载的远端网段（即 VPN 服务端实际推送的路由），据此生成/更新 Source NAT
@@ -101,16 +125,21 @@ pfctl -sn | grep 'nat on ocvpn'
   安装: pkg install os-openconnect openconnect vpnc-scripts
   或 GUI: System -> Firmware -> Plugins 搜 openconnect。
 
+> UniSpoke 二进制（华为 SecoClient/SVN 后端）已随本包内置（`pkg/bin/unispoke`，
+> FreeBSD amd64），安装时自动放到 `/usr/local/sbin/unispoke`，无需单独安装。
+
 ## 本包内容
 - pkg/custom/  真正生效的定制文件（覆盖到目标机对应路径）
   - run_instances.py    多实例管理器（start/stop/restart/status/sync + cleanup_legacy + 动态 NAT）
   - run-instance.sh     daemon 包装，导出 OC_IFACE
+  - run-unispoke.sh     UniSpoke 后端 daemon 包装（密码走 UNISPOKE_PASSWORD 环境变量）
   - vpnc-instance.sh    openconnect 的 --script，做 tunN->interface 改名 + 保留 WAN 默认路由
   - rc.d/opnsense-openconnect   启动入口
   - actions_openconnect.conf    configd action（GUI 按钮 / API 调用）
   - inc/openconnect.inc         OPNsense 服务注册（Services 状态使用聚合 PID）
   - templates/...               rc.conf.d 开关模板
   - GUI: instances.volt, dialogInstance.xml, forms/instances.xml（实例增删改查界面）
+- pkg/bin/unispoke     内置的 UniSpoke FreeBSD amd64 二进制（华为 SecoClient/SVN 后端）
 - pkg/config/  参考片段（说明文件，安装器不写入实例/NAT）
 - install.sh   一键：拷 custom 文件 -> 准备 config -> configd 重载 -> 启动
 - pkg/apply_config.py  通用安装器：不写任何实例/NAT/网段（LAN 网段自动识别）

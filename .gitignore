@@ -5,4 +5,4 @@ __pycache__/
 *.bak*
 *.tar.gz
 *.swp
-.DS_Store
+.DS_Store*.tar.sh

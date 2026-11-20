@@ -15,13 +15,15 @@ echo "== 0/5 install dependencies =="
 pkg install -y os-openconnect openconnect vpnc-scripts >/dev/null 2>&1 || \
     pkg install -y os-openconnect openconnect vpnc-scripts
 
-echo "== 1/5 copy custom scripts =="
+echo "== 1/5 copy custom scripts + UniSpoke backend =="
 mkdir -p "$SCRIPTDIR"
 install -m 0755 "$CUST/run_instances.py" "$SCRIPTDIR/run_instances.py"
 install -m 0755 "$CUST/run-instance.sh"  "$SCRIPTDIR/run-instance.sh"
+install -m 0755 "$CUST/run-unispoke.sh"  "$SCRIPTDIR/run-unispoke.sh"
 install -m 0755 "$CUST/vpnc-instance.sh" "$SCRIPTDIR/vpnc-instance.sh"
 install -m 0755 "$CUST/rc.d/opnsense-openconnect" /usr/local/etc/rc.d/opnsense-openconnect
 install -m 0644 "$CUST/actions_openconnect.conf"  /usr/local/opnsense/service/conf/actions.d/actions_openconnect.conf
+install -m 0755 "$HERE/bin/unispoke" /usr/local/sbin/unispoke
 
 echo "== 2/5 copy GUI overlays + rc.conf.d template =="
 mkdir -p /usr/local/etc/inc/plugins.inc.d

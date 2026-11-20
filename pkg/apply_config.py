@@ -7,10 +7,17 @@ and edited in the GUI (Services -> OpenConnect), and the runtime manager
 (run_instances.py) derives Source NAT automatically from the routes each VPN
 server actually pushes. The LAN source subnet is auto-detected too.
 """
-import sys, time, shutil
+import sys, os, time, shutil
 import xml.etree.ElementTree as ET
 
 CONFIG = '/conf/config.xml'
+MODEL = '/usr/local/opnsense/mvc/app/models/OPNsense/Openconnect/General.xml'
+
+# Extra protocol backends not present in the stock os-openconnect model.
+# UniSpoke (Huawei SecoClient/SVN, Legacy + V1) is added as 'secoclient'.
+EXTRA_PROTOCOLS = (
+    ('secoclient', 'Huawei SecoClient (UniSpoke)'),
+)
 
 # LAN subnet is auto-detected by run_instances.py (_lan_net) from the
 # <interfaces>/<lan> entry in config.xml. No override is needed here.
@@ -20,6 +27,68 @@ def find_or_create(parent, tag):
     if node is None:
         node = ET.SubElement(parent, tag)
     return node
+
+# Extra per-instance OptionFields for the secoclient backend (UniSpoke).
+# UniSpoke auto-detects both, so these default to 'auto'; they exist only to
+# let an operator force a specific mode/transport when auto-detection misjudges
+# a gateway.  The field/option names mirror UniSpoke's CLI flags.
+SECOCLIENT_FIELDS = (
+    ('mode', 'Gateway mode', (('auto', 'Auto-detect'), ('legacy', 'Legacy'), ('v1', 'V1'))),
+    ('transport', 'Data transport', (('auto', 'Auto-detect'), ('udp', 'UDP'), ('tcp', 'TCP/TLS'))),
+)
+
+
+def _option_field(name, label, choices):
+    el = ET.Element(name, type='OptionField')
+    req = ET.SubElement(el, 'Required')
+    req.text = 'N'
+    dflt = ET.SubElement(el, 'Default')
+    dflt.text = 'auto'
+    ov = ET.SubElement(el, 'OptionValues')
+    for value, text in choices:
+        o = ET.SubElement(ov, value)
+        o.text = text
+    return el
+
+
+def patch_model():
+    """Add the secoclient protocol option and its per-instance mode/transport
+    OptionFields to the stock model.  Idempotent: only inserts what is missing.
+    """
+    if not os.path.exists(MODEL):
+        return False
+    tree = ET.parse(MODEL)
+    root = tree.getroot()
+    changed = False
+
+    # 1) protocol dropdown: add secoclient backend
+    for opt in root.iter('protocol'):
+        ov = opt.find('OptionValues')
+        if ov is None:
+            continue
+        existing = set((e.tag or '') for e in ov)
+        for value, label in EXTRA_PROTOCOLS:
+            if value not in existing:
+                el = ET.SubElement(ov, value)
+                el.text = label
+                changed = True
+
+    # 2) instance-level mode/transport OptionFields for UniSpoke
+    inst = None
+    for e in root.iter('instance'):
+        inst = e
+        break
+    if inst is not None:
+        existing = set(e.tag for e in inst)
+        for name, label, choices in SECOCLIENT_FIELDS:
+            if name not in existing:
+                inst.append(_option_field(name, label, choices))
+                changed = True
+
+    if changed:
+        tree.write(MODEL, encoding='utf-8', xml_declaration=True)
+    return changed
+
 
 def main():
     ts = time.strftime('%Y%m%d-%H%M%S')
@@ -50,6 +119,9 @@ def main():
 
     tree.write(CONFIG, encoding='utf-8', xml_declaration=True)
     print('config.xml prepared. Add instances in the GUI; LAN net is auto-detected.')
+
+    if patch_model():
+        print('patched model General.xml with extra protocol backends')
     return 0
 
 if __name__ == '__main__':
