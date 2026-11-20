@@ -3,6 +3,7 @@
 from pathlib import Path
 import argparse
 import base64
+import io
 import tarfile
 
 ROOT = Path(__file__).resolve().parent
@@ -12,8 +13,27 @@ PKG = ROOT / "pkg"
 def build(output: Path, one_file: bool) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(output, "w:gz") as tar:
-        tar.add(PKG, arcname="pkg")
-        tar.add(ROOT / "README.md", arcname="README.md")
+        # The release is commonly built on Windows. A developer or tool may
+        # have written CRLF into a text file despite the repository's LF
+        # attributes; on FreeBSD that breaks executable shebangs (for example,
+        # Python sees `/usr/local/bin/python3\r`). Canonicalize text in the
+        # archive so packaging is independent of the builder's OS and
+        # working-tree line endings.
+        paths = [PKG, *sorted(PKG.rglob("*")), ROOT / "README.md"]
+        for path in paths:
+            if path == PKG or PKG in path.parents:
+                arcname = Path("pkg") / path.relative_to(PKG)
+            else:
+                arcname = Path("README.md")
+            info = tar.gettarinfo(str(path), arcname=str(arcname).replace("\\", "/"))
+            if path.is_file():
+                data = path.read_bytes()
+                if b"\0" not in data:
+                    data = data.replace(b"\r\n", b"\n")
+                info.size = len(data)
+                tar.addfile(info, io.BytesIO(data))
+            else:
+                tar.addfile(info)
 
     if not one_file:
         return output

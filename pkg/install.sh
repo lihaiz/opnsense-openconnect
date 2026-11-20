@@ -43,9 +43,13 @@ configctl configd restart >/dev/null 2>&1 || true
 configctl interface reconfigure >/dev/null 2>&1 || true
 
 echo "== 5/5 start manager =="
-"$SCRIPTDIR/run_instances.py" start || true
+if [ ! -f "$SCRIPTDIR/run_instances.py" ]; then
+    echo "ERROR: manager was not installed at $SCRIPTDIR/run_instances.py" >&2
+    exit 1
+fi
+"$PY" "$SCRIPTDIR/run_instances.py" start
 sleep 8
-"$SCRIPTDIR/run_instances.py" status || true
+"$PY" "$SCRIPTDIR/run_instances.py" status
 
 echo
 echo "Done. GUI: Services -> OpenConnect -> add an instance."

@@ -37,14 +37,14 @@ gateway is misjudged.
 On the OPNsense target, as root:
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.0/opnsense-openconnect-v1.2.0-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 or with `curl`:
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.0/opnsense-openconnect-v1.2.0-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -58,7 +58,7 @@ else.
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# 09C033D013856E97279732B46223BFF0AB13C1063A4A55EB09FADED42C34306E
+# AE45A2807297AD849A148C1CB32742A43A299F6F38B8D206E6B1E224F1A567FF
 ```
 
 ### Build from source (alternative)
@@ -153,14 +153,14 @@ pfctl -sn | grep 'nat on ocvpn'
 fetch（FreeBSD 原生）：
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.0/opnsense-openconnect-v1.2.0-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 或 curl：
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.0/opnsense-openconnect-v1.2.0-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.1/opnsense-openconnect-v1.2.1-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -168,7 +168,7 @@ sh /tmp/opnsense-openconnect-install.sh
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# 09C033D013856E97279732B46223BFF0AB13C1063A4A55EB09FADED42C34306E
+# AE45A2807297AD849A148C1CB32742A43A299F6F38B8D206E6B1E224F1A567FF
 ```
 
 ### 从源码安装（备选）

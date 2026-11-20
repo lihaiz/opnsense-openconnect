@@ -108,7 +108,7 @@ def main():
     opnsense = find_or_create(root, 'OPNsense')
     oc = find_or_create(opnsense, 'openconnect')
     find_or_create(oc, 'instances')
-    oc.set('version', '1.1.0')
+    oc.set('version', '1.2.1')
 
     # Remove any legacy outbound NAT rules bound to our tunnel interfaces so
     # they can never trigger the Migration assistant. Runtime Source NAT is
