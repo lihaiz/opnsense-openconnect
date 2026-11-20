@@ -43,14 +43,14 @@ field); for UniSpoke this maps to `-insecure` and is required, not optional.
 On the OPNsense target, as root:
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.3/opnsense-openconnect-v1.2.3-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 or with `curl`:
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.3/opnsense-openconnect-v1.2.3-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -64,7 +64,7 @@ else.
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# 9068B979A78F72EAC85082CCF8E5F6E9582CCACC46882E39B76852956D9578DC
+# 6B49C1D0587DB99981B9C08064EBC57698C22EF4403654CB293040095D1592F1
 ```
 
 ### Build from source (alternative)
@@ -163,14 +163,14 @@ pfctl -sn | grep 'nat on ocvpn'
 fetch（FreeBSD 原生）：
 
 ```sh
-fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.3/opnsense-openconnect-v1.2.3-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
 或 curl：
 
 ```sh
-curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.2/opnsense-openconnect-v1.2.2-install.sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.2.3/opnsense-openconnect-v1.2.3-install.sh
 sh /tmp/opnsense-openconnect-install.sh
 ```
 
@@ -178,7 +178,7 @@ sh /tmp/opnsense-openconnect-install.sh
 
 ```sh
 sha256 /tmp/opnsense-openconnect-install.sh
-# 9068B979A78F72EAC85082CCF8E5F6E9582CCACC46882E39B76852956D9578DC
+# 6B49C1D0587DB99981B9C08064EBC57698C22EF4403654CB293040095D1592F1
 ```
 
 ### 从源码安装（备选）

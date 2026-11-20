@@ -377,12 +377,30 @@ def is_unispoke(inst):
     return inst['protocol'] == 'secoclient'
 
 
+def register_interfaces():
+    """Register dynamic tunnel interfaces into config.xml <interfaces>.
+
+    pf's interface mapping is built from config.xml <interfaces>; the
+    openconnect_interfaces() plugin hook only populates that section when
+    plugins_interfaces() runs (pluginctl -i / write_config).  Without this the
+    Source NAT rules on ocvpn* are dropped with "Interface ... not found".
+    Called directly (not through configctl) to avoid deadlocking configd, since
+    this manager can be invoked from inside a configd action.
+    """
+    subprocess.run('/usr/local/sbin/pluginctl -i',
+                   shell=True, stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL)
+
+
 def reload_filter():
     """Reload pf so Source NAT enable/disable changes take effect.
 
-    Called directly (not through configctl) to avoid deadlocking configd,
-    since this manager can be invoked from inside a configd action.
+    Register the dynamic tunnel interfaces first (see register_interfaces),
+    then reload the filter.  Called directly (not through configctl) to avoid
+    deadlocking configd, since this manager can be invoked from inside a
+    configd action.
     """
+    register_interfaces()
     subprocess.run('/usr/local/etc/rc.filter_configure skip_alias',
                    shell=True, stdout=subprocess.DEVNULL,
                    stderr=subprocess.DEVNULL)
@@ -602,9 +620,12 @@ def main():
     if action in ('start', 'stop', 'restart', 'sync'):
         # Reconcile Source NAT AFTER tunnels are up/down, so the destination
         # follows the routes the VPN server actually pushed (and the rule is
-        # removed when an instance is down or disabled).
-        if sync_nat(instances):
-            reload_filter()
+        # removed when an instance is down or disabled).  Always re-register
+        # the dynamic tunnel interfaces and reload pf afterwards: the NAT
+        # rules only take effect once config.xml <interfaces> contains the
+        # ocvpn* entries, which is refreshed by register_interfaces().
+        sync_nat(instances)
+        reload_filter()
         return 0
 
     # status
