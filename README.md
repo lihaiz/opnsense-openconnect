@@ -18,12 +18,44 @@ and dynamic Source NAT based on the routes each VPN server actually pushes.
 
 ## Installation
 
+### One-command install (recommended)
+
 On the OPNsense target, as root:
 
 ```sh
-pkg install -y os-openconnect openconnect vpnc-scripts
-sh install.sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.0.0/opnsense-openconnect-v1.0.0-install.sh
+sh /tmp/opnsense-openconnect-install.sh
 ```
+
+or with `curl`:
+
+```sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.0.0/opnsense-openconnect-v1.0.0-install.sh
+sh /tmp/opnsense-openconnect-install.sh
+```
+
+The installer is self-contained: it installs the package dependencies
+(`os-openconnect`, `openconnect`, `vpnc-scripts`), copies the custom scripts,
+prepares `/conf/config.xml`, reloads configd, and starts the manager. You do
+not need to download or unpack anything else.
+
+### Verify the download (optional)
+
+```sh
+sha256 /tmp/opnsense-openconnect-install.sh
+# 4635d1abfc6820b250ae145b5a5a2af79796c412795021bd91ecaff164f8688e
+```
+
+### Build from source (alternative)
+
+```sh
+git clone https://github.com/lihaiz/opnsense-openconnect.git
+cd opnsense-openconnect
+python3 build.py --one-file
+sh dist/opnsense-openconnect.tar.sh
+```
+
+or copy the `pkg/` directory to the target and run `sh pkg/install.sh`.
 
 Then add instances in `Services -> OpenConnect`. Source NAT is generated
 automatically after each connection establishes and pushed routes appear.
@@ -84,12 +116,53 @@ pfctl -sn | grep 'nat on ocvpn'
 - pkg/apply_config.py  通用安装器：不写任何实例/NAT/网段（LAN 网段自动识别）
 
 ## 安装步骤（目标机 root，SSH）
-1. 先装依赖：pkg install os-openconnect openconnect vpnc-scripts
-2. 传包并解压，进 pkg/ 目录执行：sh install.sh
-3. 在 GUI Services -> OpenConnect 添加实例（server/user/password/interface/协议）。
+
+### 一键安装（推荐）
+
+在 OPNsense 上以 root 执行下面任一条命令即可。安装脚本是自包含的：会自动安装依赖
+（os-openconnect、openconnect、vpnc-scripts）、拷贝定制脚本、准备 /conf/config.xml、
+重载 configd 并启动，无需手动传包。
+
+fetch（FreeBSD 原生）：
+
+```sh
+fetch -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.0.0/opnsense-openconnect-v1.0.0-install.sh
+sh /tmp/opnsense-openconnect-install.sh
+```
+
+或 curl：
+
+```sh
+curl -fsSL -o /tmp/opnsense-openconnect-install.sh https://github.com/lihaiz/opnsense-openconnect/releases/download/v1.0.0/opnsense-openconnect-v1.0.0-install.sh
+sh /tmp/opnsense-openconnect-install.sh
+```
+
+安装前校验下载文件（可选）：
+
+```sh
+sha256 /tmp/opnsense-openconnect-install.sh
+# 4635d1abfc6820b250ae145b5a5a2af79796c412795021bd91ecaff164f8688e
+```
+
+### 从源码安装（备选）
+
+```sh
+git clone https://github.com/lihaiz/opnsense-openconnect.git
+cd opnsense-openconnect
+python3 build.py --one-file
+sh dist/opnsense-openconnect.tar.sh
+```
+
+或把 `pkg/` 目录拷到目标机后执行：`sh pkg/install.sh`。
+
+### 添加实例并验证
+
+1. 在 GUI 的 Services -> OpenConnect 添加实例（server/user/password/interface/协议）。
    Source NAT 会自动按该实例推送的路由生成，无需手写网段。
-4. 验证：/usr/local/opnsense/scripts/OPNsense/Openconnect/run_instances.py status；
-   接口 ifconfig <interface> 有隧道 IP；pfctl -sn | grep <interface> 能看到动态生成的 NAT。
+2. 验证：
+   - `/usr/local/opnsense/scripts/OPNsense/Openconnect/run_instances.py status`
+   - `ifconfig <interface>` 有隧道 IP
+   - `pfctl -sn | grep <interface>` 能看到动态生成的 NAT 规则
 
 ## 移植注意事项（务必按目标机实际改）
 - **LAN 网段**：无需手动设置。run_instances.py 的 _lan_net() 会从 config.xml 的 <interfaces>/<lan> 自动识别本机内网段。
