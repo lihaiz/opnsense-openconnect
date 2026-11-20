@@ -306,12 +306,8 @@ def render_conf(inst):
     # AnyConnect servers that offer a group selection need an explicit answer
     # in non-interactive mode.  The upstream single-instance plugin's default
     # was "all", so keep that behaviour unless the user configured a group.
-    # For Huawei UniVPN, --authgroup is the authentication domain (fallback to
-    # the server host), not a tunnel group.
-    if inst['protocol'] == 'univpn':
-        lines.append('authgroup=%s' % (inst['group'] or inst['server'].split(':')[0]))
-    else:
-        lines.append('authgroup=%s' % (inst['group'] or 'all'))
+    # (Huawei gateways are handled by the UniSpoke backend, not openconnect.)
+    lines.append('authgroup=%s' % (inst['group'] or 'all'))
     if inst['clientcertificate']:
         lines.append('certificate=%s/%s_cert.pem' % (CONFDIR, inst['iface']))
         lines.append('sslkey=%s/%s_key.pem' % (CONFDIR, inst['iface']))

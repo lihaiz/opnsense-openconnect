@@ -10,7 +10,7 @@ and dynamic Source NAT based on the routes each VPN server actually pushes.
 - GUI-managed multiple OpenConnect instances.
 - Two protocol backends:
   - **OpenConnect** — Cisco AnyConnect, Juniper, Pulse, GlobalProtect, F5,
-    Fortinet, Array, and Huawei UniVPN (V1).
+    Fortinet, and Array.
   - **UniSpoke** (`secoclient`) — Huawei SecoClient / SVN SSL VPN, supporting
     both the **Legacy** and **V1** UniVPN protocols with native TUN mode.
 - Independent tunnel interface names and runtime files per instance.
@@ -23,8 +23,7 @@ and dynamic Source NAT based on the routes each VPN server actually pushes.
 
 ### UniSpoke backend (Huawei SecoClient / SVN)
 
-The stock `openconnect --protocol=univpn` only speaks the Huawei **V1** dialect,
-so legacy Huawei SVN gateways fail to connect. This package bundles
+This package bundles
 [UniSpoke](https://github.com/NixaVulpi/UniSpoke), a standalone Go client that
 implements both the **Legacy** and **V1** UniVPN protocols and creates its own
 TUN adapter. Select `Huawei SecoClient (UniSpoke)` as the protocol for such a
@@ -100,12 +99,11 @@ pfctl -sn | grep 'nat on ocvpn'
   server / user / password / authgroup / 接口名(interface) / 协议。
 - 两种协议后端：
   - **OpenConnect**：Cisco AnyConnect、Juniper、Pulse、GlobalProtect、F5、
-    Fortinet、Array，以及 Huawei UniVPN（仅 V1）。
+    Fortinet、Array。
   - **UniSpoke**（协议选项 `secoclient`）：Huawei SecoClient / SVN SSL VPN，
     同时支持华为 UniVPN 的 **Legacy** 与 **V1** 两种协议，自带原生 TUN 模式。
-    系统自带的 `openconnect --protocol=univpn` 只支持 V1，所以老式华为 SVN 网关
-    连不上；选 `Huawei SecoClient (UniSpoke)` 即可，mode/transport 自动探测，
-    需要时可逐实例强制指定。
+    华为 SVN 网关（含老式 Legacy 与 V1）请选 `Huawei SecoClient (UniSpoke)`，
+    mode/transport 自动探测，需要时可逐实例强制指定。
 - 每个实例用**自己的接口名**，由 vpnc-instance.sh 把内核分配的 tunN 改名成该接口名，
   让 pf/NAT 能识别接口（UniSpoke 后端直接按该接口名创建 TUN，无需改名）。
 - 启动脚本**保留物理 WAN 默认路由**，所以 mihomo 翻墙、百度直连都不受影响（split tunnel）。

@@ -61,11 +61,17 @@ def patch_model():
     root = tree.getroot()
     changed = False
 
-    # 1) protocol dropdown: add secoclient backend
+    # 1) protocol dropdown: drop the stock Huawei UniVPN (experimental) option
+    #    (it only speaks the Huawei V1 dialect and is replaced by UniSpoke), and
+    #    add the secoclient backend.
     for opt in root.iter('protocol'):
         ov = opt.find('OptionValues')
         if ov is None:
             continue
+        for e in list(ov):
+            if (e.tag or '') == 'univpn':
+                ov.remove(e)
+                changed = True
         existing = set((e.tag or '') for e in ov)
         for value, label in EXTRA_PROTOCOLS:
             if value not in existing:
